@@ -10,7 +10,6 @@ data class EventDraft(
     val allDay: Boolean,
 )
 
-/** A deliberately small, predictable Russian date/time parser for the project prototype. */
 object EventParser {
     private val months = listOf(
         "января", "февраля", "марта", "апреля", "мая", "июня",
@@ -138,3 +137,4 @@ object EventParser {
         set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
     }
 }
+
