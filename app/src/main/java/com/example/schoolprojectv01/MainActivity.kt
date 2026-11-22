@@ -101,7 +101,7 @@ class MainActivity : Activity(), RecognitionListener {
             topMargin = dp(14)
         })
         content.addView(TextView(this).apply {
-            text = "Поддерживаются сегодня, завтра, послезавтра, даты вида «12 мая» или «12.05.2027» и время вроде «в 15:30» или «в три» (здесь это 15:00). Если время не указано, событие будет на весь день. Проверьте результат перед сохранением."
+            text = "Поддерживаются даты «сегодня», «завтра», «12 мая», диапазоны «с 12 мая по 18 мая» и сроки «12 мая на неделю» или «завтра на 3 дня». Можно добавить время, например «в 15:30». Без времени событие будет на весь день."
             textSize = 13f
             setTextColor(0xFF6B7485.toInt())
             setPadding(0, dp(14), 0, 0)
@@ -252,8 +252,20 @@ class MainActivity : Activity(), RecognitionListener {
             return
         }
         val start = Calendar.getInstance().apply { timeInMillis = draft.startMillis }
-        val dateText = android.text.format.DateFormat.format("EEEE, d MMMM", start).toString()
-        val timeText = if (draft.allDay) "Весь день" else android.text.format.DateFormat.format("HH:mm", start).toString()
+        val end = Calendar.getInstance().apply { timeInMillis = draft.endMillis }
+        val lastDay = (end.clone() as Calendar).apply {
+            if (draft.allDay) add(Calendar.DAY_OF_MONTH, -1)
+        }
+        val startsAndEndsOnSameDay = start.get(Calendar.YEAR) == lastDay.get(Calendar.YEAR) &&
+            start.get(Calendar.DAY_OF_YEAR) == lastDay.get(Calendar.DAY_OF_YEAR)
+        val startDateText = android.text.format.DateFormat.format("d MMMM yyyy", start).toString()
+        val endDateText = android.text.format.DateFormat.format("d MMMM yyyy", lastDay).toString()
+        val dateText = if (startsAndEndsOnSameDay) {
+            android.text.format.DateFormat.format("EEEE, d MMMM yyyy", start).toString()
+        } else "$startDateText — $endDateText"
+        val timeText = if (draft.allDay) "Весь день" else {
+            "${android.text.format.DateFormat.format("HH:mm", start)}–${android.text.format.DateFormat.format("HH:mm", end)}"
+        }
         AlertDialog.Builder(this)
             .setTitle("Проверьте событие")
             .setMessage("${draft.title}\n$dateText · $timeText\n\nОткрыть календарь с этими данными?")
